@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/vuex"></script>
+    <title>Document</title>
+    <style>
+        .user{
+            background-color: #778899;
+            margin: 5px 0;
+            color: #d3d3d3;
+            padding: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .album{
+            background-color: #778899;
+            margin: 5px 0;
+            color: #d3d3d3;
+            padding: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        main {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+    </style>
+  </head>
+  <body>
+    <div id="app">
+        <main>
+            <div class="users">
+                <User v-bind:key="user.id" v-for="user in users" v-bind:user="user"/>
+            </div>
+            <Album />
+        </main>
+    </div>
+    <script>
+        const store = new Vuex.Store({
+            state:{
+                albums:[]
+            },
+            mutations:{
+                setAlbums(state,payload){
+                    state.albums = payload;
+                }
+            }
+        });
+
+        Vue.component("Album", {
+            computed: {
+                albums(){
+                    return store.state.albums;
+                }
+            },
+            template: 
+            `<div>
+                <div v-bind:key="album.id" v-for="album in albums" v-bind:album="album">
+                    <p class="album">{{album.title}}</p>
+                </div>
+            </div>`
+        });
+        Vue.component("Photo", {});
+
+      Vue.component("User", {
+        props: ["user"],
+        // render(createElement) {
+        //   return createElement("p", {
+        //     "class": "user",
+        //     on:{
+        //         click: function(user){
+        //             getUserId(user.id)
+        //         }
+        //     }
+        //   }, this.user.name);
+        // },
+        methods: {
+            getUserId: function(id){
+                var albums = [];
+                fetch(`https://jsonplaceholder.typicode.com/albums/?userId=${id}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        data.forEach(element => {
+                        const album = { id: element.id, title: element.title };
+                        albums.push(album);
+                    });
+                    store.commit("setAlbums", albums);
+                });
+            }
+        },
+        template: `<p @click="getUserId(user.id)" class="user">{{user.name}}</p>`
+      });
+
+      new Vue({
+        el: "#app",
+        data: {
+          users: []
+        },
+        created: function() {
+          fetch("https://jsonplaceholder.typicode.com/users")
+            .then(res => res.json())
+            .then(data => {
+              data.forEach(element => {
+                const user = { id: element.id, name: element.name };
+                this.users.push(user);
+              });
+            });
+        }
+      });
+    </script>
+  </body>
+</html>
